@@ -2,8 +2,9 @@ package mapreduce
 
 import (
 	"hash/fnv"
-	"io/ioutil"
 	"fmt"
+	"os"
+	"bufio"
 )
 
 // doMap does the job of a map worker: it reads one of the input files
@@ -18,10 +19,10 @@ func doMap(
 ) {
 	// TODO:
 	// You will need to write this function.
-	// You can find the filename for this map task's input to reduce task number
+	// You can find the filename for this //map task's input to reduce task number
 	// r using reduceName(jobName, mapTaskNumber, r). The ihash function (given
 	// below doMap) should be used to decide which file a given key belongs into.
-	//
+
 	// The intermediate output of a map task is stored in the file
 	// system as multiple files whose name indicates which map task produced
 	// them, as well as which reduce task they are for. Coming up with a
@@ -45,11 +46,19 @@ func doMap(
 
 	//the code i write in 201810
 	//first , we need to read the file according the filename
-	b, err := ioutil.ReadFile(inFile)
+	input,err := os.Open(inFile)
 	if err != nil {
-		fmt.Print(err)
+		fmt.Println("the err when open the file is:",err)
 	}
-	str := string(b)
+	defer input.Close()
+	//read the file line by line
+	inputScanner := bufio.NewScanner(input)
+	for inputScanner.Scan() {
+		lines := inputScanner.Text()
+		fmt.Println("the context of the file is:",lines)
+		//the context we got is gonana to be executed in mapF
+		mapF(inFile,lines)
+	}
 }
 
 func ihash(s string) uint32 {
